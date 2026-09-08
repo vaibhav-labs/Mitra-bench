@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use MITRA-Bench, please cite it as below."
+title: "MITRA-Bench: Measuring In-conversation Triage and Referral Accuracy in Sub-Acute Distress"
+authors:
+  - family-names: Jain
+    given-names: Vaibhav
+date-released: 2026-09-02
+version: "0.1.0"
+repository-code: "https://github.com/vaibhav-labs/mitra-bench"
+license: "MIT AND CC-BY-4.0"

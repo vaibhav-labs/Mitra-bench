@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# MITRA-Bench pre-push gate. Enable once per clone:
+#   git config core.hooksPath .githooks
+# Runs the mechanical half of the grant-reviewer board. A BLOCK stops the push.
+# Submission-grade artifacts are reviewed separately:
+#   python3 review/pre_push_review.py --mode submission --artifact docs/grant/<file>
+set -e
+cd "$(git rev-parse --show-toplevel)"
+python3 review/pre_push_review.py --mode repo

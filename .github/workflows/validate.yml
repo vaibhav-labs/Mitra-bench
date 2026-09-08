@@ -1,0 +1,24 @@
+name: Validate scenarios
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install jsonschema
+      - name: Validate anchor scenarios
+        run: python3 harness/validate_scenarios.py --dir scenarios/anchor
+      - name: Validate Hindi scenarios (if any exist)
+        run: |
+          if [ -n "$(ls -A scenarios/hindi 2>/dev/null)" ]; then
+            python3 harness/validate_scenarios.py --dir scenarios/hindi
+          else
+            echo "No Hindi scenarios yet — skipping"
+          fi
+      - name: Smoke-test the harness runner
+        run: python3 harness/run_scenario.py --scenario scenarios/anchor/WRK-041.json --backend mock --out /tmp/smoke_run.json
+      - name: Unit-test the judge vote aggregation
+        run: python3 judges/aggregate_votes.py
