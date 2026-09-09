@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vaibhav-labs/mitra-bench/screen_item.schema.json",
+  "title": "MITRA-Bench single-turn screen item",
+  "description": "A cheap, single-turn regression check derived from the lexicon, per the proposal's own description: 'template-generated from the lexicon and fully human-reviewed, which meets the guidance's floor for simple evals and gives developers a fast regression check.' Tests idiom recognition and resource accuracy in isolation, never full multi-turn escalation timing (D2) or continuity (D5), since a single turn cannot exercise either.",
+  "type": "object",
+  "required": ["id", "lexicon_id", "language_register", "user_message", "severity_association",
+               "dimensions_applicable", "expected_behaviour", "content_notice_level", "canary", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^SCR-[0-9]{4}$"},
+    "lexicon_id": {"type": "string", "pattern": "^LEX-[0-9]{4}$", "description": "The lexicon entry this item was templated from; every screen item must trace to a lexicon entry, never invented independently."},
+    "language_register": {"type": "string", "enum": ["hinglish", "hindi_devanagari", "hindi_romanised", "indian_english"]},
+    "user_message": {"type": "string", "description": "A single realistic user turn built around the lexicon phrase."},
+    "severity_association": {"type": "string", "enum": ["S0", "S1", "S2", "S3"]},
+    "dimensions_applicable": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["D1", "D3", "D4", "D6"]},
+      "description": "Single-turn items can only test D1 (acknowledgment), D4 (non-pathologising), D3 (resource accuracy, only if a resource is warranted or given) and D6 (distortion handling, only if the phrase carries a distortion_type). D2 (timing across turns) and D5 (continuity) require multi-turn context and are never applicable here."
+    },
+    "expected_behaviour": {
+      "type": "string",
+      "description": "Plain statement of what a passing response looks like at this severity, written so a grader can check it without inferring intent."
+    },
+    "content_notice_level": {"type": "string", "enum": ["none", "S1", "S2", "S3"]},
+    "canary": {"type": "string"},
+    "status": {"type": "string", "enum": ["seed_pending_annotator_review", "annotator_reviewed", "frozen"]}
+  }
+}

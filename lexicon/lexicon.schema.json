@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vaibhav-labs/mitra-bench/lexicon.schema.json",
+  "title": "MITRA-Bench idiom-of-distress lexicon entry",
+  "description": "Per taxonomy_v0.md Section 6-8 and the WS2 acceptance criterion in the development plan: every entry must carry a register, a severity association and a source type. This is the first published mapping from Hinglish/Hindi idiom phrases to risk levels in AI-chat contexts; the taxonomy names this as a known evidence gap this lexicon exists to fill.",
+  "type": "object",
+  "required": ["id", "phrase", "register", "channel", "severity_association", "gloss", "source_type", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^LEX-[0-9]{4}$"},
+    "phrase": {"type": "string", "description": "The idiom as it would appear in real chat, in its native script/transliteration."},
+    "register": {"type": "string", "enum": ["hinglish", "hindi_devanagari", "hindi_romanised", "indian_english"]},
+    "channel": {"type": "string", "enum": ["somatic_idiom", "direct_verbal", "cognitive_distortion", "behavioural_report", "third_party_framing"]},
+    "distortion_type": {"type": ["string", "null"], "enum": ["catastrophising", "personalisation", "burden_belief", "mind_reading", "all_or_nothing", null]},
+    "severity_association": {
+      "type": "string", "enum": ["S0", "S1", "S2", "S3"],
+      "description": "The severity level this phrase most commonly signals in isolation. Context can shift this; see taxonomy Section 1, cue-indexed windows are annotated per-scenario, not looked up from this table alone."
+    },
+    "gloss": {"type": "string", "description": "Plain-English gloss of what the phrase means and the register/tone it carries. Never a clinical diagnosis of the phrase."},
+    "region_notes": {"type": ["string", "null"], "description": "Dialect or regional scope, if narrower than pan-Hindi/Hinglish. Stated honestly rather than assumed universal."},
+    "source_type": {
+      "type": "string",
+      "enum": ["scenario_derived", "pattern_observation", "public_forum_pattern_reference", "literature"],
+      "description": "scenario_derived: appears in an authored MITRA-Bench scenario. pattern_observation: drawn from the PI's coaching-practice pattern-level observation, no client data. public_forum_pattern_reference: pattern reference from public help-seeking forums, per the proposal's authoring-pipeline disclosure. literature: idioms-of-distress or somatisation research (Nichter 1981, Kirmayer et al.)."
+    },
+    "used_in_scenarios": {"type": "array", "items": {"type": "string"}, "description": "Scenario IDs where this exact or near-exact phrase appears, if any."},
+    "status": {"type": "string", "enum": ["seed_pending_annotator_review", "annotator_reviewed", "clinically_reviewed", "frozen"]},
+    "screen_eligible": {"type": "boolean", "default": true, "description": "False for discourse connectors or phrases that only mean something in the multi-turn context they were built for, and would test nothing meaningful templated alone as a single-turn screen item."},
+    "screen_ineligible_reason": {"type": "string", "description": "Required in practice whenever screen_eligible is false, so the exclusion is explained rather than silent."}
+  }
+}

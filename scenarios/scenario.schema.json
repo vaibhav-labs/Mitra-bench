@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vaibhav-labs/mitra-bench/scenario.schema.json",
+  "title": "MITRA-Bench scenario record",
+  "type": "object",
+  "required": ["id", "version", "language_register", "context", "persona", "peak_severity",
+               "severity_trajectory", "turns", "cue_events", "window", "checkpoints",
+               "class_flags", "content_notice_level", "canary", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^[A-Z]{3}-[0-9]{3}(-[A-Z])?$", "description": "e.g. WRK-041; variant suffix -R for recovery, -B for branch continuation"},
+    "version": {"type": "string", "const": "0.1.0"},
+    "language_register": {"type": "string", "enum": ["indian_english", "hinglish", "hindi_devanagari", "hindi_romanised"]},
+    "context": {"type": "string", "enum": ["workplace", "academic", "family", "financial"]},
+    "persona": {
+      "type": "object",
+      "required": ["adult", "occupation_or_role", "region"],
+      "properties": {
+        "adult": {"type": "boolean", "const": true, "description": "Hard gate. Every persona must be 18+."},
+        "occupation_or_role": {"type": "string"},
+        "region": {"type": "string"},
+        "notes": {"type": "string", "description": "No identifying life details; composite only."}
+      },
+      "additionalProperties": false
+    },
+    "peak_severity": {"type": "string", "enum": ["S0", "S1", "S2", "S3"]},
+    "severity_trajectory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "severity"],
+        "properties": {"turn": {"type": "integer", "minimum": 1}, "severity": {"type": "string", "enum": ["S0", "S1", "S2", "S3"]}}
+      }
+    },
+    "turns": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Scripted USER turns only. Assistant turns are generated live by the tested model during a harness run and are not stored here.",
+      "items": {
+        "type": "object",
+        "required": ["turn", "role", "text"],
+        "properties": {
+          "turn": {"type": "integer", "minimum": 1},
+          "role": {"type": "string", "enum": ["user", "assistant"]},
+          "text": {"type": "string"},
+          "timestamp": {"type": "string", "description": "e.g. '01:58' — narrated cadence marker, not real-time"},
+          "burst_group_id": {"type": ["string", "null"], "description": "Turns sharing an id are a message burst"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "cue_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cue_id", "turn", "channel", "severity_association"],
+        "properties": {
+          "cue_id": {"type": "string"},
+          "turn": {"type": "integer"},
+          "channel": {"type": "string", "enum": ["direct_verbal", "somatic_idiom", "behavioural_report",
+                                                    "third_party_framing", "cognitive_distortion", "temporal_cadence"]},
+          "span": {"type": "string", "description": "The exact phrase, for annotation traceability"},
+          "severity_association": {"type": "string", "enum": ["S0", "S1", "S2", "S3"]},
+          "distortion_type": {"type": ["string", "null"], "enum": ["catastrophising", "personalisation", "burden_belief", "mind_reading", "all_or_nothing", null]}
+        },
+        "additionalProperties": false
+      }
+    },
+    "window": {
+      "type": "object",
+      "required": ["opening_cue_id", "closing_turn"],
+      "properties": {
+        "opening_cue_id": {"type": "string"},
+        "closing_turn": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "checkpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "severity", "pass_band", "dimensions_to_score"],
+        "properties": {
+          "turn": {"type": "integer"},
+          "severity": {"type": "string", "enum": ["S0", "S1", "S2", "S3"]},
+          "pass_band": {"type": "array", "items": {"type": "string", "enum": ["L0", "L1", "L2", "L3", "L4"]}},
+          "dimensions_to_score": {"type": "array", "items": {"type": "string", "enum": ["D1", "D2", "D3", "D4", "D5", "D6"]}},
+          "applicability_criteria": {
+            "type": "object",
+            "description": "Per Transluce's design: the precondition in the USER's turn that must hold before each dimension can be scored here. Judge-chained: one judge call determines both applicability and the pass/fail.",
+            "additionalProperties": {"type": "string"}
+          },
+          "protective_task_note": {"type": "string", "description": "If a task is requested at this checkpoint, state whether it is protective or harmful-course-facilitating."}
+        },
+        "additionalProperties": false
+      }
+    },
+    "class_flags": {
+      "type": "object",
+      "properties": {
+        "counter_case": {"type": "boolean", "default": false},
+        "branched": {"type": "boolean", "default": false},
+        "recovery": {"type": "boolean", "default": false},
+        "cadence": {"type": "boolean", "default": false},
+        "context_shift": {"type": "boolean", "default": false}
+      },
+      "additionalProperties": false
+    },
+    "branches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": {"type": "string", "description": "e.g. 'model failed to probe at turn 3'"},
+          "alternative_continuation": {"type": "array", "items": {"$ref": "#/properties/turns/items"}},
+          "note": {"type": "string", "description": "Free-text placeholder when the alternative continuation is not yet authored."}
+        }
+      }
+    },
+    "prefill": {
+      "type": ["object", "null"],
+      "description": "For recovery-class scenarios: the scripted misstep the model is started after.",
+      "properties": {
+        "misstep_type": {"type": "string", "enum": ["helpline_dumped_early", "ignored_S2_cue", "facilitated_harmful_task", null]},
+        "misstep_turn": {"type": "integer"}
+      }
+    },
+    "paraphrase_twin_id": {"type": ["string", "null"]},
+    "held_out": {"type": "boolean", "default": true, "description": "True until the rolling release policy publishes this scenario."},
+    "content_notice_level": {"type": "string", "enum": ["none", "S1", "S2", "S3"]},
+    "canary": {"type": "string", "description": "Unique per-scenario canary string for contamination detection."},
+    "provenance": {
+      "type": "object",
+      "required": ["author", "status"],
+      "properties": {
+        "author": {"type": "string"},
+        "reviewers": {"type": "array", "items": {"type": "string"}},
+        "status": {"type": "string", "enum": ["sketch_pending_clinical_review", "checklist_passed", "calibrated", "frozen"]},
+        "adjudication_note_id": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}
